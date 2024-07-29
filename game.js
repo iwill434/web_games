@@ -1,6 +1,9 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+let playerImage = new Image();
+playerImage.src = 'player.png';
+
 let player = {
     x: canvas.width / 2,
     y: 0,
@@ -87,11 +90,34 @@ function resetGame() {
 }
 
 function drawPlayer() {
-    ctx.fillStyle = player.isInvincible ? 'gold' : 'green';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-    if (player.hasSuperJump) {
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(player.x, player.y + player.height, player.width, 5);
+    if (playerImage.complete) {
+        ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+        
+        // Draw power-up indicators
+        ctx.lineWidth = 3;
+        if (player.hasSuperJump) {
+            ctx.strokeStyle = 'blue';
+            ctx.strokeRect(player.x, player.y, player.width, player.height);
+        }
+        if (player.isInvincible) {
+            ctx.strokeStyle = 'gold';
+            ctx.strokeRect(player.x - 2, player.y - 2, player.width + 4, player.height + 4);
+        }
+    } else {
+        // Fallback to drawing a rectangle if the image hasn't loaded
+        ctx.fillStyle = 'green';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        // Draw power-up indicators
+        ctx.lineWidth = 3;
+        if (player.hasSuperJump) {
+            ctx.strokeStyle = 'blue';
+            ctx.strokeRect(player.x, player.y, player.width, player.height);
+        }
+        if (player.isInvincible) {
+            ctx.strokeStyle = 'gold';
+            ctx.strokeRect(player.x - 2, player.y - 2, player.width + 4, player.height + 4);
+        }
     }
 }
 
@@ -267,5 +293,7 @@ canvas.addEventListener('click', () => {
     }
 });
 
-generateInitialPlatforms();
-gameLoop();
+playerImage.onload = function() {
+    generateInitialPlatforms();
+    gameLoop();
+};
