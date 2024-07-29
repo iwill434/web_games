@@ -95,7 +95,7 @@ function update() {
 
     doodle.x += doodle.dx;
     doodle.y += doodle.dy;
-    doodle.dy += 0.2;
+    doodle.dy += 0.5; // Increased gravity for more noticeable falling
 
     if (doodle.x < 0) doodle.x = GAME_WIDTH;
     if (doodle.x > GAME_WIDTH) doodle.x = 0;
@@ -110,13 +110,15 @@ function update() {
         startMessage.style.display = 'block';
     }
 
+    let onPlatform = false;
     platforms.forEach((platform, index) => {
         if (doodle.dy > 0 && 
             doodle.y + doodle.height > platform.y &&
-            doodle.y + doodle.height < platform.y + platform.height &&
+            doodle.y + doodle.height < platform.y + platform.height + doodle.dy &&
             doodle.x + doodle.width > platform.x &&
             doodle.x < platform.x + platform.width) {
             doodle.dy = -10;
+            onPlatform = true;
             if (platform.type === 'disappearing') {
                 platforms.splice(index, 1);
             }
@@ -164,7 +166,7 @@ function update() {
         }
     });
 
-    if (doodle.y < GAME_HEIGHT / 2) {
+    if (doodle.y < GAME_HEIGHT / 2 && doodle.dy < 0) {
         const offset = GAME_HEIGHT / 2 - doodle.y;
         doodle.y = GAME_HEIGHT / 2;
         platforms.forEach(platform => platform.y += offset);
@@ -201,6 +203,9 @@ function update() {
             }
         }
     }
+
+    // Ensure the doodle stays within the game bounds
+    doodle.y = Math.min(Math.max(doodle.y, 0), GAME_HEIGHT - doodle.height);
 }
 
 function draw() {
