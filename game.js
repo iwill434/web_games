@@ -16,6 +16,7 @@ let player = {
 let platforms = [];
 let score = 0;
 let gameOver = false;
+let gameStarted = false;
 
 function generatePlatform(x, y) {
     return {
@@ -38,9 +39,10 @@ function init() {
     
     player.x = canvas.width / 2 - player.width / 2;
     player.y = canvas.height - 50;
-    player.dy = 0;
+    player.dy = player.jumpForce; // Start with an initial jump
     score = 0;
     gameOver = false;
+    gameStarted = false;
 }
 
 function drawPlayer() {
@@ -102,10 +104,20 @@ function drawScore() {
     ctx.fillText(`Score: ${score}`, 10, 30);
 }
 
+function drawStartMessage() {
+    ctx.fillStyle = 'black';
+    ctx.font = '30px Arial';
+    ctx.fillText('Press Space to Start', canvas.width / 2 - 120, canvas.height / 2);
+}
+
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!gameOver) {
+    if (!gameStarted) {
+        drawPlatforms();
+        drawPlayer();
+        drawStartMessage();
+    } else if (!gameOver) {
         movePlayer();
         checkCollision();
         updatePlatforms();
@@ -126,9 +138,15 @@ let keys = {};
 
 document.addEventListener('keydown', (e) => {
     keys[e.code] = true;
-    if (e.code === 'Space' && gameOver) {
-        init();
-        gameLoop();
+    if (e.code === 'Space') {
+        if (!gameStarted) {
+            gameStarted = true;
+            gameLoop();
+        } else if (gameOver) {
+            init();
+            gameStarted = true;
+            gameLoop();
+        }
     }
 });
 
