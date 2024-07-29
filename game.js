@@ -63,6 +63,7 @@ function generateInitialPlatforms() {
 
     player.x = startPlatform.x + startPlatform.width / 2 - player.width / 2;
     player.y = startPlatform.y - player.height;
+    player.velocityY = 0; // Reset vertical velocity
 
     for (let i = 1; i < 7; i++) {
         platforms.push(generatePlatform(canvas.height - 50 - i * 100));
@@ -73,6 +74,16 @@ function generateInitialPlatforms() {
             powerUps.push(generatePowerUp(canvas.height - 50 - i * 100 - 30));
         }
     }
+}
+
+function resetGame() {
+    score = 0;
+    player.isInvincible = false;
+    player.hasSuperJump = false;
+    player.invincibleTimer = 0;
+    player.superJumpTimer = 0;
+    player.velocityY = 0; // Ensure vertical velocity is reset
+    generateInitialPlatforms();
 }
 
 function drawPlayer() {
