@@ -11,14 +11,10 @@ body {
 
 #game-container {
     position: relative;
-    width: 400px;
-    height: 600px;
-    border: 2px solid #000;
-    background-color: #87CEEB; /* Sky blue background */
 }
 
 #gameCanvas {
-    display: block;
+    border: 2px solid #000;
 }
 
 #score-container {
@@ -26,8 +22,6 @@ body {
     top: 10px;
     right: 10px;
     text-align: right;
-    color: white;
-    z-index: 10;
 }
 
 #score {
@@ -47,11 +41,4 @@ body {
     font-size: 24px;
     font-weight: bold;
     text-align: center;
-    color: white;
-    z-index: 10;
-}
-
-#legend {
-    margin-top: 10px;
-    font-size: 14px;
 }
