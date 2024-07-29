@@ -2,7 +2,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 let playerImage = new Image();
-playerImage.src = 'player.png';
+playerImage.src = 'IMG_3846.png';
 
 let player = {
     x: canvas.width / 2,
