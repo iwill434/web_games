@@ -17,10 +17,10 @@ let platforms = [];
 let score = 0;
 let gameOver = false;
 
-function generatePlatform() {
+function generatePlatform(x, y) {
     return {
-        x: Math.random() * (canvas.width - 70),
-        y: platforms.length * 100,
+        x: x !== undefined ? x : Math.random() * (canvas.width - 70),
+        y: y !== undefined ? y : 0,
         width: 70,
         height: 20
     };
@@ -28,9 +28,15 @@ function generatePlatform() {
 
 function init() {
     platforms = [];
+    // Add initial platform below the player
+    platforms.push(generatePlatform(canvas.width / 2 - 35, canvas.height - 20));
+    
+    // Generate other platforms
     for (let i = 0; i < 6; i++) {
-        platforms.push(generatePlatform());
+        platforms.push(generatePlatform(undefined, i * 100));
     }
+    
+    player.x = canvas.width / 2 - player.width / 2;
     player.y = canvas.height - 50;
     player.dy = 0;
     score = 0;
