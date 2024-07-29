@@ -6,14 +6,18 @@ body {
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
+    overflow: hidden;
 }
 
 #game-container {
     position: relative;
+    width: 400px; /* Fixed width */
+    height: 100vh; /* Full viewport height */
+    overflow: hidden;
 }
 
 #gameCanvas {
+    display: block;
     border: 2px solid #000;
 }
 
@@ -22,6 +26,9 @@ body {
     top: 10px;
     right: 10px;
     text-align: right;
+    color: white;
+    font-family: Arial, sans-serif;
+    z-index: 10;
 }
 
 #score {
@@ -41,4 +48,11 @@ body {
     font-size: 24px;
     font-weight: bold;
     text-align: center;
+    color: white;
+    z-index: 10;
+}
+
+#legend {
+    margin-top: 10px;
+    font-size: 14px;
 }
