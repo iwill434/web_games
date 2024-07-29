@@ -42,14 +42,26 @@ function initGame() {
     obstacles.length = 0;
     powerUps.length = 0;
     score = 0;
-    doodle.x = canvas.width / 2;
-    doodle.y = canvas.height - 100;
+
+    // Create the initial platform for the doodle to spawn on
+    const initialPlatform = createPlatform(
+        canvas.width / 2 - 40,
+        canvas.height - 100,
+        80,
+        'normal'
+    );
+    platforms.push(initialPlatform);
+
+    // Set the doodle's position to be on top of the initial platform
+    doodle.x = initialPlatform.x + initialPlatform.width / 2 - doodle.width / 2;
+    doodle.y = initialPlatform.y - doodle.height;
     doodle.dy = 0;
 
-    for (let i = 0; i < 10; i++) {
+    // Generate the rest of the platforms
+    for (let i = 1; i < 10; i++) {
         platforms.push(createPlatform(
             Math.random() * (canvas.width - 80),
-            i * 60,
+            canvas.height - 100 - i * 60,
             80,
             Math.random() < 0.3 ? 'disappearing' : 'normal'
         ));
