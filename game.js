@@ -1,4 +1,3 @@
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
@@ -133,11 +132,31 @@ function update() {
         score += Math.floor(offset);
         scoreElement.textContent = `Score: ${score}`;
 
-        while (platforms.length > 0 && platforms[0].y > canvas.height) {
-            platforms.shift();
+        // Remove platforms, obstacles, and power-ups that are below the screen
+        platforms.forEach((platform, index) => {
+            if (platform.y > canvas.height) {
+                platforms.splice(index, 1);
+            }
+        });
+
+        obstacles.forEach((obstacle, index) => {
+            if (obstacle.y > canvas.height) {
+                obstacles.splice(index, 1);
+            }
+        });
+
+        powerUps.forEach((powerUp, index) => {
+            if (powerUp.y > canvas.height) {
+                powerUps.splice(index, 1);
+            }
+        });
+
+        // Generate new platforms
+        while (platforms.length < 10) {
+            const lastPlatform = platforms[platforms.length - 1];
             platforms.push(createPlatform(
                 Math.random() * (canvas.width - 80),
-                platforms[platforms.length - 1].y - 60,
+                lastPlatform ? lastPlatform.y - 60 : 0,
                 80,
                 Math.random() < 0.3 ? 'disappearing' : 'normal'
             ));
