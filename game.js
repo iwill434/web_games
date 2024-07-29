@@ -13,8 +13,7 @@ const doodle = {
     width: 40,
     height: 40,
     dx: 0,
-    dy: 0,
-    isInvincible: false
+    dy: 0
 };
 
 const platforms = [];
@@ -46,7 +45,6 @@ function initGame() {
     doodle.x = canvas.width / 2;
     doodle.y = canvas.height - 100;
     doodle.dy = 0;
-    doodle.isInvincible = false;
 
     for (let i = 0; i < 10; i++) {
         platforms.push(createPlatform(
@@ -63,7 +61,7 @@ function update() {
 
     doodle.x += doodle.dx;
     doodle.y += doodle.dy;
-    doodle.dy += 0.4; // Increased gravity
+    doodle.dy += 0.2;
 
     if (doodle.x < 0) doodle.x = canvas.width;
     if (doodle.x > canvas.width) doodle.x = 0;
@@ -81,17 +79,17 @@ function update() {
     platforms.forEach((platform, index) => {
         if (doodle.dy > 0 && 
             doodle.y + doodle.height > platform.y &&
-            doodle.y + doodle.height < platform.y + platform.height + doodle.dy &&
+            doodle.y + doodle.height < platform.y + platform.height &&
             doodle.x + doodle.width > platform.x &&
             doodle.x < platform.x + platform.width) {
-            doodle.dy = -13; // Increased jump strength
+            doodle.dy = -10;
             if (platform.type === 'disappearing') {
                 platforms.splice(index, 1);
             }
         }
     });
 
-    obstacles.forEach((obstacle) => {
+    obstacles.forEach((obstacle, index) => {
         obstacle.x += obstacle.dx;
         if (obstacle.x < 0 || obstacle.x + obstacle.width > canvas.width) {
             obstacle.dx *= -1;
@@ -101,15 +99,13 @@ function update() {
             doodle.x + doodle.width > obstacle.x &&
             doodle.y < obstacle.y + obstacle.height &&
             doodle.y + doodle.height > obstacle.y) {
-            if (!doodle.isInvincible) {
-                gameOver = true;
-                if (score > highScore) {
-                    highScore = score;
-                    highScoreElement.textContent = `High Score: ${highScore}`;
-                }
-                startMessage.textContent = 'Game Over! Press Spacebar to Restart';
-                startMessage.style.display = 'block';
+            gameOver = true;
+            if (score > highScore) {
+                highScore = score;
+                highScoreElement.textContent = `High Score: ${highScore}`;
             }
+            startMessage.textContent = 'Game Over! Press Spacebar to Restart';
+            startMessage.style.display = 'block';
         }
     });
 
@@ -119,12 +115,9 @@ function update() {
             doodle.y < powerUp.y + powerUp.height &&
             doodle.y + doodle.height > powerUp.y) {
             if (powerUp.type === 'superJump') {
-                doodle.dy = -20;
+                doodle.dy = -15;
             } else if (powerUp.type === 'invincibility') {
-                doodle.isInvincible = true;
-                setTimeout(() => {
-                    doodle.isInvincible = false;
-                }, 5000); // Invincibility lasts for 5 seconds
+                // Implement invincibility logic here
             }
             powerUps.splice(index, 1);
         }
@@ -132,24 +125,18 @@ function update() {
 
     if (doodle.y < canvas.height / 2) {
         const offset = canvas.height / 2 - doodle.y;
-        doodle.y += offset; // Changed this line to move the doodle with the screen
+        doodle.y = canvas.height / 2;
         platforms.forEach(platform => platform.y += offset);
         obstacles.forEach(obstacle => obstacle.y += offset);
         powerUps.forEach(powerUp => powerUp.y += offset);
         score += Math.floor(offset);
         scoreElement.textContent = `Score: ${score}`;
 
-        // Remove platforms, obstacles, and power-ups that are below the screen
-        platforms = platforms.filter(platform => platform.y <= canvas.height);
-        obstacles = obstacles.filter(obstacle => obstacle.y <= canvas.height);
-        powerUps = powerUps.filter(powerUp => powerUp.y <= canvas.height);
-
-        // Generate new platforms
-        while (platforms.length < 10) {
-            const lastPlatform = platforms[platforms.length - 1];
+        while (platforms.length > 0 && platforms[0].y > canvas.height) {
+            platforms.shift();
             platforms.push(createPlatform(
                 Math.random() * (canvas.width - 80),
-                lastPlatform ? lastPlatform.y - 60 : 0,
+                platforms[platforms.length - 1].y - 60,
                 80,
                 Math.random() < 0.3 ? 'disappearing' : 'normal'
             ));
@@ -167,15 +154,12 @@ function update() {
             }
         }
     }
-
-    // Ensure the doodle stays within the game bounds
-    doodle.y = Math.min(Math.max(doodle.y, 0), canvas.height - doodle.height);
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = doodle.isInvincible ? 'gold' : 'green';
+    ctx.fillStyle = 'green';
     ctx.fillRect(doodle.x, doodle.y, doodle.width, doodle.height);
 
     platforms.forEach(platform => {
