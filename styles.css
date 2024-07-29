@@ -1,1 +1,44 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+}
 
+#game-container {
+    position: relative;
+}
+
+#gameCanvas {
+    border: 2px solid #000;
+}
+
+#score-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+}
+
+#score {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#high-score {
+    font-size: 16px;
+}
+
+#start-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
