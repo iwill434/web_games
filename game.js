@@ -3,9 +3,11 @@ const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const highScoreElement = document.getElementById('high-score');
 const startMessage = document.getElementById('start-message');
+
+// Add legend to the existing score container
 const legendElement = document.createElement('div');
 legendElement.id = 'legend';
-document.body.insertBefore(legendElement, canvas);
+document.getElementById('score-container').appendChild(legendElement);
 
 canvas.width = 400;
 canvas.height = 600;
@@ -116,7 +118,7 @@ function update() {
         }
     });
 
-    obstacles.forEach((obstacle, index) => {
+    obstacles.forEach((obstacle) => {
         obstacle.x += obstacle.dx;
         if (obstacle.x < 0 || obstacle.x + obstacle.width > canvas.width) {
             obstacle.dx *= -1;
@@ -228,12 +230,8 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowLeft') doodle.dx = -5;
     if (e.code === 'ArrowRight') doodle.dx = 5;
     if (e.code === 'Space') {
-        if (!gameStarted) {
+        if (!gameStarted || gameOver) {
             gameStarted = true;
-            gameOver = false;
-            initGame();
-            startMessage.style.display = 'none';
-        } else if (gameOver) {
             gameOver = false;
             initGame();
             startMessage.style.display = 'none';
