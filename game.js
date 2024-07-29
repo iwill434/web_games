@@ -10,22 +10,15 @@ const legendElement = document.createElement('div');
 legendElement.id = 'legend';
 document.getElementById('score-container').appendChild(legendElement);
 
-const GAME_WIDTH = 400; // Fixed game width
+const GAME_WIDTH = 400;
+const GAME_HEIGHT = 600;
 
-function resizeCanvas() {
-    canvas.width = GAME_WIDTH;
-    canvas.height = window.innerHeight;
-    gameContainer.style.height = `${window.innerHeight}px`;
-    initGame(); // Reinitialize the game when resizing
-}
-
-// Call resizeCanvas initially and add event listener for window resize
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+canvas.width = GAME_WIDTH;
+canvas.height = GAME_HEIGHT;
 
 const doodle = {
     x: GAME_WIDTH / 2,
-    y: 0,
+    y: GAME_HEIGHT - 100,
     width: 40,
     height: 40,
     dx: 0,
@@ -64,7 +57,7 @@ function initGame() {
     // Create the initial platform for the doodle to spawn on
     const initialPlatform = createPlatform(
         GAME_WIDTH / 2 - 40,
-        canvas.height - 60,
+        GAME_HEIGHT - 60,
         80,
         'normal'
     );
@@ -76,11 +69,11 @@ function initGame() {
     doodle.dy = 0;
 
     // Generate the rest of the platforms
-    const platformCount = Math.floor(canvas.height / 60);
+    const platformCount = Math.floor(GAME_HEIGHT / 60);
     for (let i = 1; i < platformCount; i++) {
         platforms.push(createPlatform(
             Math.random() * (GAME_WIDTH - 80),
-            canvas.height - 60 - i * 60,
+            GAME_HEIGHT - 60 - i * 60,
             80,
             Math.random() < 0.3 ? 'disappearing' : 'normal'
         ));
@@ -107,7 +100,7 @@ function update() {
     if (doodle.x < 0) doodle.x = GAME_WIDTH;
     if (doodle.x > GAME_WIDTH) doodle.x = 0;
 
-    if (doodle.y > canvas.height) {
+    if (doodle.y > GAME_HEIGHT) {
         gameOver = true;
         if (score > highScore) {
             highScore = score;
@@ -117,7 +110,6 @@ function update() {
         startMessage.style.display = 'block';
     }
 
-    let onPlatform = false;
     platforms.forEach((platform, index) => {
         if (doodle.dy > 0 && 
             doodle.y + doodle.height > platform.y &&
@@ -125,7 +117,6 @@ function update() {
             doodle.x + doodle.width > platform.x &&
             doodle.x < platform.x + platform.width) {
             doodle.dy = -10;
-            onPlatform = true;
             if (platform.type === 'disappearing') {
                 platforms.splice(index, 1);
             }
@@ -173,8 +164,9 @@ function update() {
         }
     });
 
-    if (doodle.y < canvas.height / 2 && doodle.dy < 0) {
-        const offset = canvas.height / 2 - doodle.y;
+    if (doodle.y < GAME_HEIGHT / 2) {
+        const offset = GAME_HEIGHT / 2 - doodle.y;
+        doodle.y = GAME_HEIGHT / 2;
         platforms.forEach(platform => platform.y += offset);
         obstacles.forEach(obstacle => obstacle.y += offset);
         powerUps.forEach(powerUp => powerUp.y += offset);
@@ -182,9 +174,9 @@ function update() {
         scoreElement.textContent = `Score: ${score}`;
 
         // Remove platforms, obstacles, and power-ups that are below the screen
-        platforms = platforms.filter(platform => platform.y <= canvas.height);
-        obstacles = obstacles.filter(obstacle => obstacle.y <= canvas.height);
-        powerUps = powerUps.filter(powerUp => powerUp.y <= canvas.height);
+        platforms = platforms.filter(platform => platform.y <= GAME_HEIGHT);
+        obstacles = obstacles.filter(obstacle => obstacle.y <= GAME_HEIGHT);
+        powerUps = powerUps.filter(powerUp => powerUp.y <= GAME_HEIGHT);
 
         // Generate new platforms
         while (platforms.length < 10) {
@@ -208,13 +200,11 @@ function update() {
                 ));
             }
         }
-    } else {
-        doodle.y = Math.min(Math.max(doodle.y, 0), canvas.height - doodle.height);
     }
 }
 
 function draw() {
-    ctx.clearRect(0, 0, GAME_WIDTH, canvas.height);
+    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     ctx.fillStyle = doodle.isInvincible ? 'gold' : 'green';
     ctx.fillRect(doodle.x, doodle.y, doodle.width, doodle.height);
