@@ -117,6 +117,7 @@ function update() {
         startMessage.style.display = 'block';
     }
 
+    let onPlatform = false;
     platforms.forEach((platform, index) => {
         if (doodle.dy > 0 && 
             doodle.y + doodle.height > platform.y &&
@@ -124,6 +125,7 @@ function update() {
             doodle.x + doodle.width > platform.x &&
             doodle.x < platform.x + platform.width) {
             doodle.dy = -10;
+            onPlatform = true;
             if (platform.type === 'disappearing') {
                 platforms.splice(index, 1);
             }
@@ -171,9 +173,8 @@ function update() {
         }
     });
 
-    if (doodle.y < canvas.height / 2) {
+    if (doodle.y < canvas.height / 2 && doodle.dy < 0) {
         const offset = canvas.height / 2 - doodle.y;
-        doodle.y = canvas.height / 2;
         platforms.forEach(platform => platform.y += offset);
         obstacles.forEach(obstacle => obstacle.y += offset);
         powerUps.forEach(powerUp => powerUp.y += offset);
@@ -207,6 +208,8 @@ function update() {
                 ));
             }
         }
+    } else {
+        doodle.y = Math.min(Math.max(doodle.y, 0), canvas.height - doodle.height);
     }
 }
 
