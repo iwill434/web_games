@@ -6,43 +6,28 @@ let player = {
     y: canvas.height - 50,
     width: 30,
     height: 30,
-    speed: 5,
-    dy: 0,
-    jumpForce: -10,
-    gravity: 0.5,
-    isJumping: false
+    velocityY: 0,
+    speed: 5
 };
 
 let platforms = [];
 let score = 0;
-let gameOver = false;
 let gameStarted = false;
+let keys = {};
 
-function generatePlatform(x, y) {
+function generatePlatform(y) {
     return {
-        x: x !== undefined ? x : Math.random() * (canvas.width - 70),
-        y: y !== undefined ? y : 0,
-        width: 70,
-        height: 20
+        x: Math.random() * (canvas.width - 60),
+        y: y,
+        width: 60,
+        height: 10
     };
 }
 
-function init() {
-    platforms = [];
-    // Add initial platform below the player
-    platforms.push(generatePlatform(canvas.width / 2 - 35, canvas.height - 20));
-    
-    // Generate other platforms
-    for (let i = 0; i < 6; i++) {
-        platforms.push(generatePlatform(undefined, i * 100));
+function generateInitialPlatforms() {
+    for (let i = 0; i < 7; i++) {
+        platforms.push(generatePlatform(i * 100));
     }
-    
-    player.x = canvas.width / 2 - player.width / 2;
-    player.y = canvas.height - 50;
-    player.dy = player.jumpForce; // Start with an initial jump
-    score = 0;
-    gameOver = false;
-    gameStarted = false;
 }
 
 function drawPlayer() {
@@ -57,7 +42,19 @@ function drawPlatforms() {
     });
 }
 
-function movePlayer() {
+function drawScore() {
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Score: ${score}`, 10, 30);
+}
+
+function updateGame() {
+    if (!gameStarted) return;
+
+    player.velocityY += 0.5; // Gravity
+    player.y += player.velocityY;
+
+    // Move player left and right
     if (keys.ArrowLeft && player.x > 0) {
         player.x -= player.speed;
     }
@@ -65,88 +62,64 @@ function movePlayer() {
         player.x += player.speed;
     }
 
-    player.y += player.dy;
-    player.dy += player.gravity;
-
-    if (player.y + player.height > canvas.height) {
-        gameOver = true;
-    }
-}
-
-function checkCollision() {
+    // Check collision with platforms
     platforms.forEach(platform => {
-        if (player.y + player.height <= platform.y && 
-            player.y + player.height + player.dy > platform.y &&
+        if (player.y + player.height > platform.y &&
+            player.y + player.height < platform.y + platform.height &&
             player.x < platform.x + platform.width &&
-            player.x + player.width > platform.x) {
-            player.dy = player.jumpForce;
+            player.x + player.width > platform.x &&
+            player.velocityY > 0) {
+            player.velocityY = -13; // Jump
         }
     });
-}
 
-function updatePlatforms() {
+    // Move platforms down and generate new ones
     if (player.y < canvas.height / 2) {
         player.y = canvas.height / 2;
         platforms.forEach(platform => {
-            platform.y += -player.dy;
-            if (platform.y > canvas.height) {
-                score++;
-                platform.y = 0;
-                platform.x = Math.random() * (canvas.width - platform.width);
-            }
+            platform.y += 5;
+            score++;
         });
+
+        if (platforms[platforms.length - 1].y > 100) {
+            platforms.push(generatePlatform(0));
+        }
+    }
+
+    // Remove platforms that are off-screen
+    platforms = platforms.filter(platform => platform.y < canvas.height);
+
+    // Game over condition
+    if (player.y > canvas.height) {
+        gameStarted = false;
+        alert(`Game Over! Your score: ${score}`);
+        resetGame();
     }
 }
 
-function drawScore() {
-    ctx.fillStyle = 'black';
-    ctx.font = '20px Arial';
-    ctx.fillText(`Score: ${score}`, 10, 30);
-}
-
-function drawStartMessage() {
-    ctx.fillStyle = 'black';
-    ctx.font = '30px Arial';
-    ctx.fillText('Press Space to Start', canvas.width / 2 - 120, canvas.height / 2);
+function resetGame() {
+    player.x = canvas.width / 2;
+    player.y = canvas.height - 50;
+    player.velocityY = 0;
+    platforms = [];
+    generateInitialPlatforms();
+    score = 0;
 }
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (!gameStarted) {
-        drawPlatforms();
-        drawPlayer();
-        drawStartMessage();
-    } else if (!gameOver) {
-        movePlayer();
-        checkCollision();
-        updatePlatforms();
-        drawPlatforms();
-        drawPlayer();
-        drawScore();
-        requestAnimationFrame(gameLoop);
-    } else {
-        ctx.fillStyle = 'black';
-        ctx.font = '30px Arial';
-        ctx.fillText('Game Over', canvas.width / 2 - 70, canvas.height / 2);
-        ctx.fillText(`Score: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 40);
-        ctx.fillText('Press Space to Restart', canvas.width / 2 - 120, canvas.height / 2 + 80);
-    }
+    drawPlatforms();
+    drawPlayer();
+    drawScore();
+    updateGame();
+    requestAnimationFrame(gameLoop);
 }
-
-let keys = {};
 
 document.addEventListener('keydown', (e) => {
     keys[e.code] = true;
-    if (e.code === 'Space') {
-        if (!gameStarted) {
-            gameStarted = true;
-            gameLoop();
-        } else if (gameOver) {
-            init();
-            gameStarted = true;
-            gameLoop();
-        }
+    if (e.code === 'Space' && !gameStarted) {
+        gameStarted = true;
+        resetGame();
     }
 });
 
@@ -154,5 +127,5 @@ document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
 });
 
-init();
+generateInitialPlatforms();
 gameLoop();
