@@ -3,22 +3,13 @@ const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const highScoreElement = document.getElementById('high-score');
 const startMessage = document.getElementById('start-message');
-const gameContainer = document.getElementById('game-container');
 
-// Add legend to the existing score container
-const legendElement = document.createElement('div');
-legendElement.id = 'legend';
-document.getElementById('score-container').appendChild(legendElement);
-
-const GAME_WIDTH = 400;
-const GAME_HEIGHT = 600;
-
-canvas.width = GAME_WIDTH;
-canvas.height = GAME_HEIGHT;
+canvas.width = 400;
+canvas.height = 600;
 
 const doodle = {
-    x: GAME_WIDTH / 2,
-    y: GAME_HEIGHT - 100,
+    x: canvas.width / 2,
+    y: canvas.height - 100,
     width: 40,
     height: 40,
     dx: 0,
@@ -52,42 +43,19 @@ function initGame() {
     obstacles.length = 0;
     powerUps.length = 0;
     score = 0;
+    doodle.x = canvas.width / 2;
+    doodle.y = canvas.height - 100;
+    doodle.dy = 0;
     doodle.isInvincible = false;
 
-    // Create the initial platform for the doodle to spawn on
-    const initialPlatform = createPlatform(
-        GAME_WIDTH / 2 - 40,
-        GAME_HEIGHT - 60,
-        80,
-        'normal'
-    );
-    platforms.push(initialPlatform);
-
-    // Set the doodle's position to be on top of the initial platform
-    doodle.x = initialPlatform.x + initialPlatform.width / 2 - doodle.width / 2;
-    doodle.y = initialPlatform.y - doodle.height;
-    doodle.dy = 0;
-
-    // Generate the rest of the platforms
-    const platformCount = Math.floor(GAME_HEIGHT / 60);
-    for (let i = 1; i < platformCount; i++) {
+    for (let i = 0; i < 10; i++) {
         platforms.push(createPlatform(
-            Math.random() * (GAME_WIDTH - 80),
-            GAME_HEIGHT - 60 - i * 60,
+            Math.random() * (canvas.width - 80),
+            i * 60,
             80,
             Math.random() < 0.3 ? 'disappearing' : 'normal'
         ));
     }
-
-    // Update legend
-    updateLegend();
-}
-
-function updateLegend() {
-    legendElement.innerHTML = `
-        <div style="color: yellow;">⭐ Super Jump</div>
-        <div style="color: purple;">🛡️ Invincibility (${doodle.isInvincible ? 'Active' : 'Inactive'})</div>
-    `;
 }
 
 function update() {
@@ -95,12 +63,12 @@ function update() {
 
     doodle.x += doodle.dx;
     doodle.y += doodle.dy;
-    doodle.dy += 0.4; // Adjusted gravity
+    doodle.dy += 0.4; // Increased gravity
 
-    if (doodle.x < 0) doodle.x = GAME_WIDTH;
-    if (doodle.x > GAME_WIDTH) doodle.x = 0;
+    if (doodle.x < 0) doodle.x = canvas.width;
+    if (doodle.x > canvas.width) doodle.x = 0;
 
-    if (doodle.y > GAME_HEIGHT) {
+    if (doodle.y > canvas.height) {
         gameOver = true;
         if (score > highScore) {
             highScore = score;
@@ -110,7 +78,6 @@ function update() {
         startMessage.style.display = 'block';
     }
 
-    let onPlatform = false;
     platforms.forEach((platform, index) => {
         if (doodle.dy > 0 && 
             doodle.y + doodle.height > platform.y &&
@@ -118,7 +85,6 @@ function update() {
             doodle.x + doodle.width > platform.x &&
             doodle.x < platform.x + platform.width) {
             doodle.dy = -13; // Increased jump strength
-            onPlatform = true;
             if (platform.type === 'disappearing') {
                 platforms.splice(index, 1);
             }
@@ -127,7 +93,7 @@ function update() {
 
     obstacles.forEach((obstacle) => {
         obstacle.x += obstacle.dx;
-        if (obstacle.x < 0 || obstacle.x + obstacle.width > GAME_WIDTH) {
+        if (obstacle.x < 0 || obstacle.x + obstacle.width > canvas.width) {
             obstacle.dx *= -1;
         }
 
@@ -158,18 +124,15 @@ function update() {
                 doodle.isInvincible = true;
                 setTimeout(() => {
                     doodle.isInvincible = false;
-                    updateLegend();
                 }, 5000); // Invincibility lasts for 5 seconds
             }
             powerUps.splice(index, 1);
-            updateLegend();
         }
     });
 
-    // Camera movement
-    if (doodle.y < GAME_HEIGHT / 2) {
-        const offset = GAME_HEIGHT / 2 - doodle.y;
-        doodle.y += offset;
+    if (doodle.y < canvas.height / 2) {
+        const offset = canvas.height / 2 - doodle.y;
+        doodle.y += offset; // Changed this line to move the doodle with the screen
         platforms.forEach(platform => platform.y += offset);
         obstacles.forEach(obstacle => obstacle.y += offset);
         powerUps.forEach(powerUp => powerUp.y += offset);
@@ -177,27 +140,27 @@ function update() {
         scoreElement.textContent = `Score: ${score}`;
 
         // Remove platforms, obstacles, and power-ups that are below the screen
-        platforms = platforms.filter(platform => platform.y <= GAME_HEIGHT);
-        obstacles = obstacles.filter(obstacle => obstacle.y <= GAME_HEIGHT);
-        powerUps = powerUps.filter(powerUp => powerUp.y <= GAME_HEIGHT);
+        platforms = platforms.filter(platform => platform.y <= canvas.height);
+        obstacles = obstacles.filter(obstacle => obstacle.y <= canvas.height);
+        powerUps = powerUps.filter(powerUp => powerUp.y <= canvas.height);
 
         // Generate new platforms
         while (platforms.length < 10) {
             const lastPlatform = platforms[platforms.length - 1];
             platforms.push(createPlatform(
-                Math.random() * (GAME_WIDTH - 80),
+                Math.random() * (canvas.width - 80),
                 lastPlatform ? lastPlatform.y - 60 : 0,
                 80,
                 Math.random() < 0.3 ? 'disappearing' : 'normal'
             ));
 
             if (Math.random() < 0.1) {
-                obstacles.push(createObstacle(Math.random() * (GAME_WIDTH - 40), platforms[platforms.length - 1].y - 30));
+                obstacles.push(createObstacle(Math.random() * (canvas.width - 40), platforms[platforms.length - 1].y - 30));
             }
 
             if (Math.random() < 0.05) {
                 powerUps.push(createPowerUp(
-                    Math.random() * (GAME_WIDTH - 20),
+                    Math.random() * (canvas.width - 20),
                     platforms[platforms.length - 1].y - 30,
                     Math.random() < 0.5 ? 'superJump' : 'invincibility'
                 ));
@@ -206,11 +169,11 @@ function update() {
     }
 
     // Ensure the doodle stays within the game bounds
-    doodle.y = Math.min(Math.max(doodle.y, 0), GAME_HEIGHT - doodle.height);
+    doodle.y = Math.min(Math.max(doodle.y, 0), canvas.height - doodle.height);
 }
 
 function draw() {
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = doodle.isInvincible ? 'gold' : 'green';
     ctx.fillRect(doodle.x, doodle.y, doodle.width, doodle.height);
@@ -241,8 +204,12 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowLeft') doodle.dx = -5;
     if (e.code === 'ArrowRight') doodle.dx = 5;
     if (e.code === 'Space') {
-        if (!gameStarted || gameOver) {
+        if (!gameStarted) {
             gameStarted = true;
+            gameOver = false;
+            initGame();
+            startMessage.style.display = 'none';
+        } else if (gameOver) {
             gameOver = false;
             initGame();
             startMessage.style.display = 'none';
@@ -254,5 +221,4 @@ document.addEventListener('keyup', (e) => {
     if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') doodle.dx = 0;
 });
 
-initGame();
 gameLoop();
