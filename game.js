@@ -95,7 +95,7 @@ function update() {
 
     doodle.x += doodle.dx;
     doodle.y += doodle.dy;
-    doodle.dy += 0.5; // Increased gravity for more noticeable falling
+    doodle.dy += 0.4; // Adjusted gravity
 
     if (doodle.x < 0) doodle.x = GAME_WIDTH;
     if (doodle.x > GAME_WIDTH) doodle.x = 0;
@@ -117,7 +117,7 @@ function update() {
             doodle.y + doodle.height < platform.y + platform.height + doodle.dy &&
             doodle.x + doodle.width > platform.x &&
             doodle.x < platform.x + platform.width) {
-            doodle.dy = -10;
+            doodle.dy = -13; // Increased jump strength
             onPlatform = true;
             if (platform.type === 'disappearing') {
                 platforms.splice(index, 1);
@@ -153,7 +153,7 @@ function update() {
             doodle.y < powerUp.y + powerUp.height &&
             doodle.y + doodle.height > powerUp.y) {
             if (powerUp.type === 'superJump') {
-                doodle.dy = -15;
+                doodle.dy = -20;
             } else if (powerUp.type === 'invincibility') {
                 doodle.isInvincible = true;
                 setTimeout(() => {
@@ -166,9 +166,10 @@ function update() {
         }
     });
 
-    if (doodle.y < GAME_HEIGHT / 2 && doodle.dy < 0) {
+    // Camera movement
+    if (doodle.y < GAME_HEIGHT / 2) {
         const offset = GAME_HEIGHT / 2 - doodle.y;
-        doodle.y = GAME_HEIGHT / 2;
+        doodle.y += offset;
         platforms.forEach(platform => platform.y += offset);
         obstacles.forEach(obstacle => obstacle.y += offset);
         powerUps.forEach(powerUp => powerUp.y += offset);
