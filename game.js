@@ -1,208 +1,134 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('score');
-const highScoreElement = document.getElementById('high-score');
-const startMessage = document.getElementById('start-message');
 
-canvas.width = 400;
-canvas.height = 600;
-
-const doodle = {
+let player = {
     x: canvas.width / 2,
-    y: canvas.height - 100,
-    width: 40,
-    height: 40,
-    dx: 0,
-    dy: 0
+    y: canvas.height - 50,
+    width: 30,
+    height: 30,
+    speed: 5,
+    dy: 0,
+    jumpForce: -10,
+    gravity: 0.5,
+    isJumping: false
 };
 
-const platforms = [];
-const obstacles = [];
-const powerUps = [];
-
+let platforms = [];
 let score = 0;
-let highScore = 0;
-let gameStarted = false;
 let gameOver = false;
 
-function createPlatform(x, y, width, type = 'normal') {
-    return { x, y, width, height: 10, type };
+function generatePlatform() {
+    return {
+        x: Math.random() * (canvas.width - 70),
+        y: platforms.length * 100,
+        width: 70,
+        height: 20
+    };
 }
 
-function createObstacle(x, y) {
-    return { x, y, width: 40, height: 20, dx: 2 };
-}
-
-function createPowerUp(x, y, type) {
-    return { x, y, width: 20, height: 20, type };
-}
-
-function initGame() {
-    platforms.length = 0;
-    obstacles.length = 0;
-    powerUps.length = 0;
+function init() {
+    platforms = [];
+    for (let i = 0; i < 6; i++) {
+        platforms.push(generatePlatform());
+    }
+    player.y = canvas.height - 50;
+    player.dy = 0;
     score = 0;
-    doodle.x = canvas.width / 2;
-    doodle.y = canvas.height - 100;
-    doodle.dy = 0;
-
-    for (let i = 0; i < 10; i++) {
-        platforms.push(createPlatform(
-            Math.random() * (canvas.width - 80),
-            i * 60,
-            80,
-            Math.random() < 0.3 ? 'disappearing' : 'normal'
-        ));
-    }
+    gameOver = false;
 }
 
-function update() {
-    if (!gameStarted || gameOver) return;
-
-    doodle.x += doodle.dx;
-    doodle.y += doodle.dy;
-    doodle.dy += 0.2;
-
-    if (doodle.x < 0) doodle.x = canvas.width;
-    if (doodle.x > canvas.width) doodle.x = 0;
-
-    if (doodle.y > canvas.height) {
-        gameOver = true;
-        if (score > highScore) {
-            highScore = score;
-            highScoreElement.textContent = `High Score: ${highScore}`;
-        }
-        startMessage.textContent = 'Game Over! Press Spacebar to Restart';
-        startMessage.style.display = 'block';
-    }
-
-    platforms.forEach((platform, index) => {
-        if (doodle.dy > 0 && 
-            doodle.y + doodle.height > platform.y &&
-            doodle.y + doodle.height < platform.y + platform.height &&
-            doodle.x + doodle.width > platform.x &&
-            doodle.x < platform.x + platform.width) {
-            doodle.dy = -10;
-            if (platform.type === 'disappearing') {
-                platforms.splice(index, 1);
-            }
-        }
-    });
-
-    obstacles.forEach((obstacle, index) => {
-        obstacle.x += obstacle.dx;
-        if (obstacle.x < 0 || obstacle.x + obstacle.width > canvas.width) {
-            obstacle.dx *= -1;
-        }
-
-        if (doodle.x < obstacle.x + obstacle.width &&
-            doodle.x + doodle.width > obstacle.x &&
-            doodle.y < obstacle.y + obstacle.height &&
-            doodle.y + doodle.height > obstacle.y) {
-            gameOver = true;
-            if (score > highScore) {
-                highScore = score;
-                highScoreElement.textContent = `High Score: ${highScore}`;
-            }
-            startMessage.textContent = 'Game Over! Press Spacebar to Restart';
-            startMessage.style.display = 'block';
-        }
-    });
-
-    powerUps.forEach((powerUp, index) => {
-        if (doodle.x < powerUp.x + powerUp.width &&
-            doodle.x + doodle.width > powerUp.x &&
-            doodle.y < powerUp.y + powerUp.height &&
-            doodle.y + doodle.height > powerUp.y) {
-            if (powerUp.type === 'superJump') {
-                doodle.dy = -15;
-            } else if (powerUp.type === 'invincibility') {
-                // Implement invincibility logic here
-            }
-            powerUps.splice(index, 1);
-        }
-    });
-
-    if (doodle.y < canvas.height / 2) {
-        const offset = canvas.height / 2 - doodle.y;
-        doodle.y = canvas.height / 2;
-        platforms.forEach(platform => platform.y += offset);
-        obstacles.forEach(obstacle => obstacle.y += offset);
-        powerUps.forEach(powerUp => powerUp.y += offset);
-        score += Math.floor(offset);
-        scoreElement.textContent = `Score: ${score}`;
-
-        while (platforms.length > 0 && platforms[0].y > canvas.height) {
-            platforms.shift();
-            platforms.push(createPlatform(
-                Math.random() * (canvas.width - 80),
-                platforms[platforms.length - 1].y - 60,
-                80,
-                Math.random() < 0.3 ? 'disappearing' : 'normal'
-            ));
-
-            if (Math.random() < 0.1) {
-                obstacles.push(createObstacle(Math.random() * (canvas.width - 40), platforms[platforms.length - 1].y - 30));
-            }
-
-            if (Math.random() < 0.05) {
-                powerUps.push(createPowerUp(
-                    Math.random() * (canvas.width - 20),
-                    platforms[platforms.length - 1].y - 30,
-                    Math.random() < 0.5 ? 'superJump' : 'invincibility'
-                ));
-            }
-        }
-    }
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+function drawPlayer() {
     ctx.fillStyle = 'green';
-    ctx.fillRect(doodle.x, doodle.y, doodle.width, doodle.height);
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+}
 
+function drawPlatforms() {
+    ctx.fillStyle = 'brown';
     platforms.forEach(platform => {
-        ctx.fillStyle = platform.type === 'disappearing' ? 'orange' : 'blue';
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
     });
+}
 
-    obstacles.forEach(obstacle => {
-        ctx.fillStyle = 'red';
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-    });
+function movePlayer() {
+    if (keys.ArrowLeft && player.x > 0) {
+        player.x -= player.speed;
+    }
+    if (keys.ArrowRight && player.x < canvas.width - player.width) {
+        player.x += player.speed;
+    }
 
-    powerUps.forEach(powerUp => {
-        ctx.fillStyle = powerUp.type === 'superJump' ? 'yellow' : 'purple';
-        ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+    player.y += player.dy;
+    player.dy += player.gravity;
+
+    if (player.y + player.height > canvas.height) {
+        gameOver = true;
+    }
+}
+
+function checkCollision() {
+    platforms.forEach(platform => {
+        if (player.y + player.height <= platform.y && 
+            player.y + player.height + player.dy > platform.y &&
+            player.x < platform.x + platform.width &&
+            player.x + player.width > platform.x) {
+            player.dy = player.jumpForce;
+        }
     });
+}
+
+function updatePlatforms() {
+    if (player.y < canvas.height / 2) {
+        player.y = canvas.height / 2;
+        platforms.forEach(platform => {
+            platform.y += -player.dy;
+            if (platform.y > canvas.height) {
+                score++;
+                platform.y = 0;
+                platform.x = Math.random() * (canvas.width - platform.width);
+            }
+        });
+    }
+}
+
+function drawScore() {
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Score: ${score}`, 10, 30);
 }
 
 function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!gameOver) {
+        movePlayer();
+        checkCollision();
+        updatePlatforms();
+        drawPlatforms();
+        drawPlayer();
+        drawScore();
+        requestAnimationFrame(gameLoop);
+    } else {
+        ctx.fillStyle = 'black';
+        ctx.font = '30px Arial';
+        ctx.fillText('Game Over', canvas.width / 2 - 70, canvas.height / 2);
+        ctx.fillText(`Score: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 40);
+        ctx.fillText('Press Space to Restart', canvas.width / 2 - 120, canvas.height / 2 + 80);
+    }
 }
 
+let keys = {};
+
 document.addEventListener('keydown', (e) => {
-    if (e.code === 'ArrowLeft') doodle.dx = -5;
-    if (e.code === 'ArrowRight') doodle.dx = 5;
-    if (e.code === 'Space') {
-        if (!gameStarted) {
-            gameStarted = true;
-            gameOver = false;
-            initGame();
-            startMessage.style.display = 'none';
-        } else if (gameOver) {
-            gameOver = false;
-            initGame();
-            startMessage.style.display = 'none';
-        }
+    keys[e.code] = true;
+    if (e.code === 'Space' && gameOver) {
+        init();
+        gameLoop();
     }
 });
 
 document.addEventListener('keyup', (e) => {
-    if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') doodle.dx = 0;
+    keys[e.code] = false;
 });
 
+init();
 gameLoop();
