@@ -6,19 +6,17 @@ body {
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
-    overflow: hidden;
 }
 
 #game-container {
     position: relative;
-    width: 400px; /* Fixed width */
-    height: 100vh; /* Full viewport height */
-    overflow: hidden;
+    width: 400px;
+    height: 600px;
+    border: 2px solid #000;
 }
 
 #gameCanvas {
     display: block;
-    border: 2px solid #000;
 }
 
 #score-container {
